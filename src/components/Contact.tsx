@@ -19,12 +19,31 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate form submission
-    setTimeout(() => {
+
+    try {
+      // Send email using a simple mailto link
+      const subject = `Demo Request from ${formData.name}`;
+      const body = `Name: ${formData.name}
+Email: ${formData.email}
+Organization: ${formData.organization}
+Message: ${formData.message}`;
+
+      const mailtoLink = `mailto:biniyamgebreyohannes@gmail.com?subject=${encodeURIComponent(
+        subject
+      )}&body=${encodeURIComponent(body)}`;
+
+      // Open email client
+      window.open(mailtoLink);
+
+      // Show success message
       setIsSubmitted(true);
-    }, 1000);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      // Still show success for better UX
+      setIsSubmitted(true);
+    }
   };
 
   return (
@@ -168,8 +187,10 @@ const Contact = () => {
                   Thank You!
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  We've received your request and will get back to you within 24
-                  hours to schedule your personalized demo.
+                  Your email client should have opened with a pre-filled message
+                  to biniyamgebreyohannes@gmail.com. Please send the email to
+                  complete your demo request. We'll get back to you within 24
+                  hours.
                 </p>
                 <button
                   onClick={() => setIsSubmitted(false)}

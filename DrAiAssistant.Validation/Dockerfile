@@ -22,6 +22,6 @@ ENV ASPNETCORE_URLS=http://+:5000
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1
 
 ENTRYPOINT ["dotnet", "DrAiAssistant.Validation.Api.dll"]

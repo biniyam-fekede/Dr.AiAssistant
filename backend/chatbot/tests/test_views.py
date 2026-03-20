@@ -1,6 +1,6 @@
 import json
 from unittest.mock import patch
-from django.test import TestCase, RequestFactory
+from django.test import TestCase
 from rest_framework.test import APIClient
 from chatbot.models import MyUser, Message
 
@@ -52,7 +52,9 @@ class GetDataViewTest(TestCase):
     @patch('chatbot.views.query_huggingface')
     def test_authenticated_chat_saves_conversation(self, mock_query):
         mock_query.return_value = "Take some rest."
-        self.client.force_authenticate(user=self.user)
+        # Use force_login (Django session auth) since get_data is a plain Django view,
+        # not a DRF view — force_authenticate only works with DRF views.
+        self.client.force_login(self.user)
         response = self.client.post(
             '/api/get-data/',
             data=json.dumps({'message': 'I feel dizzy'}),

@@ -35,9 +35,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./backend
-        run: |
-          pip install -r requirements.txt
-          pip install python-dotenv psycopg2-binary
+        run: pip install -r requirements.txt
 
       - name: Run Django tests
         working-directory: ./backend

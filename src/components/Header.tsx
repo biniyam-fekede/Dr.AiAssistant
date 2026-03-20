@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Stethoscope } from 'lucide-react';
+import { Menu, X, Stethoscope, Github } from 'lucide-react';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,8 +47,9 @@ const Header = () => {
             ))}
           </nav>
 
-          <a href="/chat" className="hidden md:block bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 no-underline text-center">
-            Get Started
+          <a href="https://github.com/biniyam-fekede/Dr.AiAssistant" target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 no-underline text-center">
+            <Github className="h-4 w-4" />
+            <span>View Project</span>
           </a>
 
           {/* Mobile Menu Button */}
@@ -74,8 +75,9 @@ const Header = () => {
                   {item.name}
                 </a>
               ))}
-              <a href="/chat" className="mt-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full no-underline text-center">
-                Get Started
+              <a href="https://github.com/biniyam-fekede/Dr.AiAssistant" target="_blank" rel="noopener noreferrer" className="mt-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full no-underline text-center flex items-center justify-center space-x-2">
+                <Github className="h-4 w-4" />
+                <span>View Project</span>
               </a>
             </nav>
           </div>

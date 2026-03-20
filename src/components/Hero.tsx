@@ -25,8 +25,8 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <a href="/chat" className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 text-lg font-semibold no-underline">
-                <span>Start Consultation</span>
+              <a href="#contact" className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 text-lg font-semibold no-underline">
+                <span>Request a Demo</span>
                 <ArrowRight className="h-5 w-5" />
               </a>
 

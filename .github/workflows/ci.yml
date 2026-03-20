@@ -66,15 +66,15 @@ jobs:
 
       - name: Restore dependencies
         working-directory: ./DrAiAssistant.Validation
-        run: dotnet restore
+        run: dotnet restore DrAiAssistant.Validation.sln
 
       - name: Build
         working-directory: ./DrAiAssistant.Validation
-        run: dotnet build --no-restore
+        run: dotnet build DrAiAssistant.Validation.sln --no-restore
 
       - name: Test
         working-directory: ./DrAiAssistant.Validation
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test DrAiAssistant.Validation.sln --no-build --verbosity normal
 
   # Docker Build Verification
   docker-build:

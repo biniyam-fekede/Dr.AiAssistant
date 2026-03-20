@@ -42,9 +42,14 @@ function Navbar({ isLoggedIn, onLogout }) {
         <div className="app-container">
             <nav className="navbar">
                 <div className="container-fluid d-flex align-items-center">
-                    <Link className="navbar-brand ms-3" to="/" style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-                        <img src={Logo} alt="Doctor Assistant AI" className="navbar-logo" />
-                    </Link>
+                    <div className="d-flex align-items-center">
+                        <Link className="navbar-brand ms-3" to="/" style={{ fontSize: '2rem', fontWeight: 'bold' }}>
+                            <img src={Logo} alt="Doctor Assistant AI" className="navbar-logo" />
+                        </Link>
+                        <a href="http://localhost:5173" className="back-to-home-link ms-3" style={{ fontSize: '0.85rem', color: '#666', textDecoration: 'none' }}>
+                            ← Home
+                        </a>
+                    </div>
 
                     {/* Menu Icon visible only on small screens */}
                     {!isLargeScreen && (

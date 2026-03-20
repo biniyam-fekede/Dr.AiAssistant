@@ -5,14 +5,15 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 # Import views from chatbot app
 from chatbot.views import (
-    RegisterView, 
-    LoginView, 
-    PasswordResetRequestView, 
+    RegisterView,
+    LoginView,
+    PasswordResetRequestView,
     PasswordResetConfirmView,
-    save_conversation, 
-    get_conversations, 
+    save_conversation,
+    get_conversations,
     get_conversation_detail,
     get_latest_conversation,
+    start_new_conversation,
 )
 
 urlpatterns = [
@@ -24,8 +25,9 @@ urlpatterns = [
     path('api/password-reset-request/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('api/password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('api/', include('chatbot.urls')),  # Include URLs from chatbot app
-    path('api/save-conversation/', save_conversation, name='save_conversation'),  # Adjusted path
-    path('api/conversations/', get_conversations, name='get_conversations'),  # Adjusted path
-    path('api/conversations/<int:conversation_id>/', get_conversation_detail, name='get_conversation_detail'),  # Adjusted path for details
+    path('api/conversations/save/', save_conversation, name='save_conversation'),
+    path('api/conversations/', get_conversations, name='get_conversations'),
+    path('api/conversations/<int:conversation_id>/', get_conversation_detail, name='get_conversation_detail'),
     path('api/conversations/latest/', get_latest_conversation, name='latest_conversation'),
+    path('api/conversations/new/', start_new_conversation, name='start_new_conversation'),
 ]

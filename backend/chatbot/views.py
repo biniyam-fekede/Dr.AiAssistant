@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_bytes, force_str, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.password_validation import validate_password
+from django.conf import settings
 from rest_framework.decorators import api_view,  permission_classes
 from django.http import JsonResponse
 from django.http import HttpResponse
@@ -82,7 +83,7 @@ class PasswordResetRequestView(GenericAPIView):
             token = token_generator.make_token(user)
             uidb64 = urlsafe_base64_encode(smart_bytes(user.id))
 
-            reset_link = f"http://127.0.0.1:8000/api/password-reset-confirm/{uidb64}/{token}/"
+            reset_link = f"{settings.FRONTEND_URL}/password-reset-confirm/{uidb64}/{token}/"
             return Response({"reset_link": reset_link}, status=200)
         return Response(serializer.errors, status=400)
 
@@ -104,32 +105,61 @@ def home(request):
     return HttpResponse("Welcome to the Homepage!")
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    return Response({
+        'status': 'healthy',
+        'service': 'DrAiAssistant-Backend',
+    })
+
+
 @csrf_exempt
 def get_data(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             user_input = data.get('message', '')
+            conversation_id = data.get('conversation_id')
 
             if not user_input:
                 return JsonResponse({'error': 'No message found in the request'}, status=400)
 
-            # Context for the assistant
             system_context = """
             You are an advanced personal assistant designed to assist medical professionals with accurate, actionable health advice. When answering questions about health conditions such as headaches, provide detailed steps for relief, advice on when to seek medical help, and always prioritize safety and accuracy.
 
             Avoid guessing and misinformation: If the question is unclear or requires more details to provide an accurate response, ask follow-up questions.
             """
 
-            # Query the Hugging Face API for a response
-            bot_response = query_huggingface(user_input, system_context)
+            # Load existing conversation history for context
+            conversation_history = []
+            conversation_obj = None
+            if request.user.is_authenticated and conversation_id:
+                try:
+                    conversation_obj = Message.objects.get(id=conversation_id, user=request.user)
+                    conversation_history = conversation_obj.conversation or []
+                except Message.DoesNotExist:
+                    pass
 
-            # Save the message to the database if the user is authenticated
+            # Query the Hugging Face API with per-request history
+            bot_response = query_huggingface(user_input, system_context, conversation_history=conversation_history)
+
+            # Save the exchange to the conversation record
             if request.user.is_authenticated:
-                Message.objects.create(user=request.user, message=user_input, response=bot_response)
+                if conversation_obj is None:
+                    conversation_obj = Message.objects.create(
+                        user=request.user,
+                        title=user_input[:50],
+                        conversation=[]
+                    )
+                conversation_obj.conversation.append({"role": "user", "content": user_input})
+                conversation_obj.conversation.append({"role": "assistant", "content": bot_response})
+                conversation_obj.save()
 
-            # Return the response as JSON
-            return JsonResponse({'response': bot_response})
+            return JsonResponse({
+                'response': bot_response,
+                'conversation_id': conversation_obj.id if conversation_obj else None
+            })
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON input'}, status=400)

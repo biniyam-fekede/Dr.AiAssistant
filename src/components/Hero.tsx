@@ -25,14 +25,14 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 text-lg font-semibold">
+              <a href="/chat" className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 flex items-center justify-center space-x-2 text-lg font-semibold no-underline">
                 <span>Start Consultation</span>
                 <ArrowRight className="h-5 w-5" />
-              </button>
-              
-              <button className="border-2 border-orange-500 text-orange-600 px-8 py-4 rounded-full hover:bg-orange-50 transition-all duration-200 text-lg font-semibold">
+              </a>
+
+              <a href="#features" className="border-2 border-orange-500 text-orange-600 px-8 py-4 rounded-full hover:bg-orange-50 transition-all duration-200 text-lg font-semibold no-underline text-center">
                 Learn More
-              </button>
+              </a>
             </div>
 
             <div className="grid grid-cols-3 gap-8 pt-8 border-t border-gray-200">

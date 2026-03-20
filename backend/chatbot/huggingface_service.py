@@ -12,7 +12,7 @@ HUGGING_FACE_API_TOKEN = os.getenv('HUGGING_FACE_TOKEN')
 if HUGGING_FACE_API_TOKEN is None:
     raise ValueError("Hugging Face API token not found in environment variables")
 
-# Model ID 
+# Model ID
 # Make sure the model is hosted for the app to work as expected
 MODEL_ID = "Biniyam/Llama-3-1-8B-AI-Doctors-Assistant"
 
@@ -25,42 +25,51 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# Initialize conversation history
-conversation_history = []
 
-# Function to clean the response to keep only the assistant's answer
 def extract_assistant_response(response_text):
-    # Use regex to extract text after the assistant header
+    """Extract text after the assistant header from the LLM response."""
     match = re.search(r'<\|start_header_id\|>assistant<\|end_header_id\|>(.*?)$', response_text, re.DOTALL)
     if match:
         assistant_reply = match.group(1)
-        # Remove any trailing special tokens
         assistant_reply = re.sub(r'<\|.*?\|>', '', assistant_reply).strip()
-        # Truncate the response to 1500 words if necessary
         words = assistant_reply.split()
         if len(words) > 1500:
             assistant_reply = ' '.join(words[:1500])
         return assistant_reply
     else:
-        # Return an error message if extraction fails
         return "Error: Could not extract the assistant's response."
 
-# Function to query Hugging Face API
-def query_huggingface(user_input, system_context, temperature=0.7, top_p=0.9):
-    # Add the new user input to the conversation history
-    conversation_history.append({
-        "role": "user",
-        "content": user_input
-    })
 
-    # Limit conversation history to last N user messages
-    N = 3  # Adjust as needed
-    truncated_history = conversation_history[-N:]
+def query_huggingface(user_input, system_context, conversation_history=None, temperature=0.7, top_p=0.9):
+    """Query Hugging Face API with per-request conversation history.
 
-    # Construct the conversation history in the prompt
+    Args:
+        user_input: The user's message.
+        system_context: System prompt for the LLM.
+        conversation_history: List of prior message dicts (from the conversation record).
+                              Each dict has 'role' ('user'/'assistant') and 'content'.
+        temperature: Sampling temperature.
+        top_p: Top-p sampling parameter.
+
+    Returns:
+        The assistant's reply string.
+    """
+    if conversation_history is None:
+        conversation_history = []
+
+    # Build recent context: last N exchanges from the stored conversation
+    N = 3
+    recent_history = conversation_history[-(N * 2):]
+
+    # Construct the conversation turns in the prompt
     conversation = ""
-    for turn in truncated_history:
-        conversation += f"<|start_header_id|>user<|end_header_id|>\n{turn['content']}<|eot_id|>\n\n"
+    for turn in recent_history:
+        role = turn.get("role", "user")
+        content = turn.get("content", "")
+        conversation += f"<|start_header_id|>{role}<|end_header_id|>\n{content}<|eot_id|>\n\n"
+
+    # Add the current user input
+    conversation += f"<|start_header_id|>user<|end_header_id|>\n{user_input}<|eot_id|>\n\n"
 
     # Build the full prompt
     prompt_template = f"""
@@ -76,33 +85,22 @@ def query_huggingface(user_input, system_context, temperature=0.7, top_p=0.9):
         "parameters": {
             "temperature": temperature,
             "top_p": top_p,
-            "max_new_tokens": 1500,  # Adjust if necessary
+            "max_new_tokens": 1500,
             "stop": ["<|endoftext|>", "<|eot_id|>", "<|start_header_id|>"]
         }
     }
 
     try:
-        # Send request to Hugging Face API
         response = requests.post(API_URL, headers=headers, json=data)
 
         if response.status_code == 200:
             result = response.json()
-            # Extract the generated text from the response
             if isinstance(result, list) and len(result) > 0:
                 raw_response = result[0].get("generated_text", "")
             else:
                 raw_response = result.get("generated_text", "")
 
-            # Extract the assistant's reply
             assistant_reply = extract_assistant_response(raw_response)
-
-            # Add the assistant's reply to the conversation history (optional)
-            # This is for logging purposes and isn't included in the prompt
-            conversation_history.append({
-                "role": "assistant",
-                "content": assistant_reply
-            })
-
             return assistant_reply
         else:
             logger.error(f"Hugging Face API error: {response.status_code}, {response.text}")

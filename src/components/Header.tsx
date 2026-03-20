@@ -47,9 +47,9 @@ const Header = () => {
             ))}
           </nav>
 
-          <button className="hidden md:block bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105">
+          <a href="/chat" className="hidden md:block bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-200 transform hover:scale-105 no-underline text-center">
             Get Started
-          </button>
+          </a>
 
           {/* Mobile Menu Button */}
           <button
@@ -74,9 +74,9 @@ const Header = () => {
                   {item.name}
                 </a>
               ))}
-              <button className="mt-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full">
+              <a href="/chat" className="mt-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full no-underline text-center">
                 Get Started
-              </button>
+              </a>
             </nav>
           </div>
         )}

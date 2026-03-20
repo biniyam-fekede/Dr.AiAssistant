@@ -6,11 +6,14 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-)4=%$q1ekg!9-6w06=-4y9ie-8-o6u1-h0w1)2!6&l@vaujxi='
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-)4=%$q1ekg!9-6w06=-4y9ie-8-o6u1-h0w1)2!6&l@vaujxi=')
 
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['testserver', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'testserver,localhost,127.0.0.1').split(',')
+
+# Frontend URL for password reset links, etc.
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 
 
 INSTALLED_APPS = [
@@ -60,11 +63,11 @@ WSGI_APPLICATION = 'AI_doctor_assistant.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydatabase',
-        'USER': 'myuser',
-        'PASSWORD': 'mypassword',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME', 'mydatabase'),
+        'USER': os.getenv('DB_USER', 'myuser'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'mypassword'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -137,4 +140,46 @@ if EMAIL_HOST_USER is None:
 if EMAIL_HOST_PASSWORD is None:
     raise ValueError("EMAIL_HOST_PASSWORD not found in environment variables")
 
-DEFAULT_FROM_EMAIL = 'passwordresetemail@gmail.com'  # The email to use as sender
+DEFAULT_FROM_EMAIL = 'passwordresetemail@gmail.com'
+
+# ─── Production Security Settings ───
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1', 'yes')
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ─── Logging Configuration ───
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'chatbot': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}

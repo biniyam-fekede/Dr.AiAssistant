@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Python Backend Tests
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          pip install -r requirements.txt
+          pip install python-dotenv psycopg2-binary
+
+      - name: Run Django tests
+        working-directory: ./backend
+        env:
+          DJANGO_SECRET_KEY: test-secret-key
+          DJANGO_DEBUG: "True"
+          DB_NAME: testdb
+          DB_USER: testuser
+          DB_PASSWORD: testpass
+          DB_HOST: localhost
+          DB_PORT: 5432
+          HUGGING_FACE_TOKEN: test-token
+          EMAIL_HOST_USER: test@example.com
+          EMAIL_HOST_PASSWORD: test-password
+          FRONTEND_URL: http://localhost:3000
+        run: python manage.py test chatbot.tests -v2
+
+  # C# Validation Service Tests
+  validation-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        working-directory: ./DrAiAssistant.Validation
+        run: dotnet restore
+
+      - name: Build
+        working-directory: ./DrAiAssistant.Validation
+        run: dotnet build --no-restore
+
+      - name: Test
+        working-directory: ./DrAiAssistant.Validation
+        run: dotnet test --no-build --verbosity normal
+
+  # Docker Build Verification
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: docker build -t dr-ai-backend ./backend
+
+      - name: Build validation image
+        run: docker build -t dr-ai-validation ./DrAiAssistant.Validation
+
+      - name: Build frontend image
+        run: docker build -t dr-ai-frontend ./frontend
+
+  # Security scan for secrets
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Scanning for potential secrets..."
+          # Check for common secret patterns (fail if found in non-example files)
+          if grep -rn "PASSWORD.*=.*['\"][^'\"]*['\"]" --include="*.py" --exclude-dir=tests backend/ | grep -v "os.getenv" | grep -v ".example" | grep -v "test"; then
+            echo "WARNING: Potential hardcoded passwords found"
+            exit 1
+          fi
+          echo "No hardcoded secrets detected."
